@@ -13,6 +13,10 @@
 #import "Scratcher.h"
 #import "Sys.h"
 
+#include <QDebug>
+
+#import "riaafilter.h"
+
 #define BASE_PLAYBACK_FREQUENCY 44100.0f
 #define AUDIO_SAMPLE_SIZE (sizeof(float) * 2)
 
@@ -273,6 +277,10 @@ DWORD CALLBACK Scratcher::WriteScratchStream(HSTREAM handle, void* writeBuffer, 
         ++dest;
     }
 
+    //qDebug() << "Wrote length of " << length;
+
+
+    RIAAFilter::PlaybackFilter((float*)writeBuffer, length);
     return length;
 }
 

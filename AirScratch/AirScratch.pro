@@ -18,7 +18,8 @@ SOURCES += \
     src/main.cpp \
     src/Scratcher.cpp \
     src/Sys.cpp \
-    src/scratchcontroller.cpp
+    src/scratchcontroller.cpp \
+    riaafilter.cpp
 
 # Installation path
 # target.path =
@@ -30,7 +31,8 @@ qtcAddDeployment()
 HEADERS += \
     src/Scratcher.h \
     src/Sys.h \
-    src/scratchcontroller.h
+    src/scratchcontroller.h \
+    riaafilter.h
 
 unix:!macx: LIBS += -L$$PWD/lib/ -lbass
 

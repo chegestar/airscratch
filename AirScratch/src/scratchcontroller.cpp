@@ -1,6 +1,7 @@
 #include "scratchcontroller.h"
 
-#define BYTE_POSITION_TO_PIXELS 0.0025f
+//#define BYTE_POSITION_TO_PIXELS 0.0025f
+#define BYTE_POSITION_TO_PIXELS 0.0035f
 #include <QFile>
 #include <QTimer>
 
@@ -15,7 +16,9 @@
 //#define AUDIO_FILE "30secloop.wav"
 //#define AUDIO_FILE "edison.wav"
 #define AUDIO_FILE "king_nonviolence.wav"
+//#define AUDIO_FILE "funky_drummer.wav"
 
+#include "riaafilter.h"
 
 namespace
 {
@@ -60,6 +63,8 @@ namespace
         while (BASS_ChannelIsActive(decoder))
         {
             DWORD c = BASS_ChannelGetData(decoder, buf, sizeof(buf)|BASS_DATA_FLOAT);
+
+            RIAAFilter::RecordingFilter(&buf[0], c);
 
             memcpy(output + pos, buf, c);
             pos += c;
