@@ -18,6 +18,8 @@ static float playB[3] = { 1.0000000000, -0.7218922000, -0.1860520545 };
 static float rectmp[10000];
 static float playtmp[10000];
 
+#include <QDebug>
+
 void RIAAFilter::RecordingFilter(float* buf, DWORD bufSize)
 {
     float* a = &recA[0];
@@ -69,7 +71,7 @@ void RIAAFilter::RecordingFilter(float* buf, DWORD bufSize)
     }
 }
 
-void RIAAFilter::PlaybackFilter(float* buf, DWORD bufSize)
+void RIAAFilter::PlaybackFilter(float* buf, DWORD bufSize, float volume)
 {
     float* a = &playA[0];
     float* b = &playB[0];
@@ -109,8 +111,8 @@ void RIAAFilter::PlaybackFilter(float* buf, DWORD bufSize)
         ry0 = b[0]*rx0 + b[1]*rx1 + b[2]*rx2 - a[1]*ry1 -a[2]*ry2;
 
         // Set the value to the output buffer
-        *buf++ = tanh(ly0);
-        *buf++ = tanh(ry0);
+        *buf++ = tanh(ly0)*volume;
+        *buf++ = tanh(ry0)*volume;
 
         //*buf++ = ly0;
         //*buf++ = ry0;

@@ -1,3 +1,6 @@
+#ifndef __SCRATCHER_HH__
+#define __SCRATCHER_HH__
+
 /*
  *  Scratcher.h
  *  RadballsPP
@@ -7,7 +10,7 @@
  *
  */
 
-#import "bass.h"
+#include "bass.h"
 
 
 
@@ -30,6 +33,8 @@ public:
     void BeganScratching();
     void EndedScratching();
 
+    static float getPosOffset() { return scratchingPositionOffset_; }
+
 private:
     static DWORD CALLBACK WriteScratchStream(HSTREAM handle, void* writeBuffer, DWORD length, void* user);
 
@@ -40,7 +45,7 @@ private:
     float* buffer_;
     int size_;
 
-    float scratchingPositionOffset_;
+    static float scratchingPositionOffset_;
 
     float scratchingPositionSmoothedVelocity_;
     float scratchingPositionVelocity_;
@@ -53,3 +58,5 @@ private:
     float positionOffset_;
     float previousPositionOffset_;
 };
+
+#endif

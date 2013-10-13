@@ -19,7 +19,9 @@ SOURCES += \
     src/Scratcher.cpp \
     src/Sys.cpp \
     src/scratchcontroller.cpp \
-    riaafilter.cpp
+    riaafilter.cpp \
+    src/leaplistener.cpp \
+    src/audiograph.cpp
 
 # Installation path
 # target.path =
@@ -32,9 +34,16 @@ HEADERS += \
     src/Scratcher.h \
     src/Sys.h \
     src/scratchcontroller.h \
-    riaafilter.h
+    riaafilter.h \
+    src/leaplistener.h \
+    src/audiograph.h
 
 unix:!macx: LIBS += -L$$PWD/lib/ -lbass
+
+INCLUDEPATH += $$PWD/include
+DEPENDPATH += $$PWD/include
+
+unix:!macx: LIBS += -L$$PWD/lib/ -lLeap
 
 INCLUDEPATH += $$PWD/include
 DEPENDPATH += $$PWD/include

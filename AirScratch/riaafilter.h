@@ -9,7 +9,7 @@ public:
     RIAAFilter();
 
     static void RecordingFilter(float* buf, DWORD bufSize);
-    static void PlaybackFilter(float* buf, DWORD bufSize);
+    static void PlaybackFilter(float* buf, DWORD bufSize, float volume);
 
 };
 

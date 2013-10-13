@@ -7,18 +7,24 @@
  *
  */
 
-#import <assert.h>
-#import <math.h>
+#include <assert.h>
+#include <math.h>
 
-#import "Scratcher.h"
-#import "Sys.h"
+#include "Scratcher.h"
+#include "Sys.h"
 
 #include <QDebug>
 
-#import "riaafilter.h"
+#include "riaafilter.h"
 
 #define BASE_PLAYBACK_FREQUENCY 44100.0f
 #define AUDIO_SAMPLE_SIZE (sizeof(float) * 2)
+
+#include "scratchcontroller.h"
+
+#include "audiograph.h"
+
+float Scratcher::scratchingPositionOffset_ = 0.0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// @brief
@@ -26,6 +32,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 Scratcher::Scratcher()
 {
+    qDebug() << __PRETTY_FUNCTION__;
+
+
     isScratching_ = false;
     scratchingPositionVelocity_ = BASE_PLAYBACK_FREQUENCY;
     scratchingPositionSmoothedVelocity_ = BASE_PLAYBACK_FREQUENCY;
@@ -41,6 +50,7 @@ Scratcher::Scratcher()
 
     // play scratch stream
     BASS_ChannelPlay(soundTrackScratchStreamHandle_, false);
+    qDebug() << __PRETTY_FUNCTION__ << "exit";
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,10 +287,9 @@ DWORD CALLBACK Scratcher::WriteScratchStream(HSTREAM handle, void* writeBuffer, 
         ++dest;
     }
 
-    //qDebug() << "Wrote length of " << length;
+    RIAAFilter::PlaybackFilter((float*)writeBuffer, length, ScratchController::FaderVolume);
 
-
-    RIAAFilter::PlaybackFilter((float*)writeBuffer, length);
+    //qDebug() << "returning with length " << length << " drawbufpos: " << drawBufPos;
     return length;
 }
 

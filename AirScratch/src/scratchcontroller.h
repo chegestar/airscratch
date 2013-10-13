@@ -7,17 +7,28 @@
 #include "bass.h"
 #include "Scratcher.h"
 
-class ScratchController : public QObject
+#include "leaplistener.h"
+#include "Leap.h"
+
+class ScratchController : public QObject, public LeapCtrlListener
 {
     Q_OBJECT
 public:
     explicit ScratchController(QObject *parent = 0);
     ~ScratchController();
 
+    void leapScratchStart(float pos, float ypos);
+    void leapScratchMove(float pos, float ypos);
+    void leapScratchEnd(float pos);
+
+
+    static float FaderVolume;
 signals:
 
 public slots:
     void timerTick();
+
+    void faderMove(float volume);
 
     void scratchStart(int x, int y);
     void scratchMove(int x, int y);
@@ -47,6 +58,8 @@ private:
     void* mMappedMemory;
     int mMappedMemorySize;
 
+    Leap::Controller* mLeapCtrl;
+    LeapListener* mLeapListener;
 };
 
 #endif // SCRATCHCONTROLLER_H

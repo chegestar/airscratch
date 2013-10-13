@@ -1,7 +1,7 @@
 #include "scratchcontroller.h"
 
-//#define BYTE_POSITION_TO_PIXELS 0.0025f
-#define BYTE_POSITION_TO_PIXELS 0.0035f
+#define BYTE_POSITION_TO_PIXELS 0.002f
+//#define BYTE_POSITION_TO_PIXELS 0.0035f
 #include <QFile>
 #include <QTimer>
 
@@ -13,12 +13,21 @@
 
 #include <unistd.h>
 
+#include "leaplistener.h"
+#include "audiograph.h"
+
 //#define AUDIO_FILE "30secloop.wav"
 //#define AUDIO_FILE "edison.wav"
 #define AUDIO_FILE "king_nonviolence.wav"
 //#define AUDIO_FILE "funky_drummer.wav"
+//#define AUDIO_FILE "killa01.wav"
+//#define AUDIO_FILE "calibrate.wav"
 
 #include "riaafilter.h"
+
+#define ABS(x) (x < 0.0 ? -x : x)
+
+float ScratchController::FaderVolume = 1.0;
 
 namespace
 {
@@ -50,6 +59,9 @@ namespace
 
     void* Unpack(void* arg)
     {
+
+        qDebug() << __PRETTY_FUNCTION__;
+
         HSTREAM decoder = info.decoder;
         char* output = (char*)info.data;
 
@@ -59,6 +71,8 @@ namespace
         BASS_ChannelSetPosition(decoder, 0, BASS_POS_BYTE);
 
         int pos = 0;
+        int drawidx = 0;
+
 
         while (BASS_ChannelIsActive(decoder))
         {
@@ -67,12 +81,23 @@ namespace
             RIAAFilter::RecordingFilter(&buf[0], c);
 
             memcpy(output + pos, buf, c);
+
+            for (int i = 0; i < c && i < 10000; i+=AudioGraph::bufDensity)
+            {
+                AudioGraph::mBuf[drawidx] = 1000*buf[i];
+                qDebug() << "bufval: " << buf[i];
+                drawidx++;
+            }
+
             pos += c;
+
         }
 
         BASS_StreamFree(decoder);
 
         return NULL;
+
+        qDebug() << __PRETTY_FUNCTION__ << "exits";
     }
 }
 
@@ -87,6 +112,9 @@ ScratchController::~ScratchController()
 {
     fclose(mMappedFile);
     munmap(mMappedMemory, mMappedMemorySize);
+
+    mLeapCtrl->removeListener(*mLeapListener);
+    delete mLeapCtrl;
 }
 
 
@@ -107,14 +135,6 @@ void ScratchController::timerTick()
     lastTime = now;
 
     mScratcher->Update(dt);
-    /*float offset = BYTE_POSITION_TO_PIXELS * scratcher_->GetByteOffset();
-
-    CGAffineTransform t = CGAffineTransformIdentity;
-
-    t = CGAffineTransformTranslate(t, -256.0f, -256.0f);
-    t = CGAffineTransformTranslate(t, 160.0f, 240.0f);
-    t = CGAffineTransformRotate(t, offset);*/
-
 }
 
 void ScratchController::initBass()
@@ -124,12 +144,6 @@ void ScratchController::initBass()
     BASS_SetConfig(BASS_CONFIG_BUFFER, 5);
     BASS_SetConfig(BASS_CONFIG_UPDATETHREADS, 1);
     BASS_SetConfig(BASS_CONFIG_UPDATEPERIOD, 5);
-
-    //std::string fpath = "/home/topisa/proj/hackfest2013/airscratch/AirScratch/audio/30secloop.wav";
-    //mHandle = BASS_StreamCreateFile(false, fpath.c_str(), 0, 0, BASS_SAMPLE_FLOAT|BASS_SAMPLE_LOOP|BASS_STREAM_PRESCAN);
-
-
-    //std::string fpath = "/home/topisa/proj/hackfest2013/airscratch/AirScratch/audio/30secloop.wav";
 
     std::string fpath = "/home/topisa/proj/hackfest2013/airscratch/AirScratch/audio/" AUDIO_FILE;
 
@@ -156,6 +170,9 @@ void ScratchController::initBass()
     mScratcher->SetBuffer((float*)mMappedMemory, mMappedMemorySize);
 
 
+    AudioGraph::initBuf();
+    memset(AudioGraph::mBuf, 0, AudioGraph::mBufSize);
+
     info.decoder = mDecoder;
     info.data = mMappedMemory;
 
@@ -164,16 +181,12 @@ void ScratchController::initBass()
 
 
 
+    mLeapCtrl = new Leap::Controller();
+    mLeapListener = new LeapListener(this);
+    mLeapListener->addControlListener(this);
 
 
-
-
-
-
-
-
-
-
+    mLeapCtrl->addListener(*mLeapListener);
 
 
     mUpdateTimer = new QTimer(this);
@@ -186,6 +199,42 @@ void ScratchController::initBass()
     mUpdateTimer->start();
 
 
+}
+
+float initYPos = 0.0;
+void ScratchController::leapScratchStart(float pos, float ypos)
+{
+    //qDebug() << __PRETTY_FUNCTION__ << pos;
+    scratchStart(pos, 0);
+    FaderVolume = 1.0;
+
+    initYPos = ypos;
+}
+
+void ScratchController::leapScratchMove(float pos, float ypos)
+{
+
+    FaderVolume = 1.0 - (ABS(initYPos - ypos) / 150.0);
+
+    if (FaderVolume > 1.0) FaderVolume = 1.0;
+    else if (FaderVolume < 0.0) FaderVolume = 0.0;
+
+
+    qDebug() << __PRETTY_FUNCTION__ << pos << ", " << ypos << ", vol: " << FaderVolume;
+    scratchMove(pos, 0);
+}
+
+void ScratchController::leapScratchEnd(float pos)
+{
+    FaderVolume = 1.0;
+    //qDebug() << __PRETTY_FUNCTION__ << pos;
+    scratchEnd(pos, 0);
+}
+
+void ScratchController::faderMove(float volume)
+{
+    qDebug() << __PRETTY_FUNCTION__ << volume;
+    FaderVolume = volume;
 }
 
 
@@ -202,7 +251,7 @@ void ScratchController::scratchStart(int x, int y)
 
     mScratchPosDiff = 0;
 
- qDebug() << "ScratchStart " << x << ", pos: " << mInitScratchPos;
+    qDebug() << "ScratchStart " << x << ", pos: " << mInitScratchPos;
     //angleAccum_ = 0.0f;
 
     mScratcher->SetByteOffset(mInitScratchPos + mScratchPosDiff);
@@ -227,8 +276,8 @@ void ScratchController::scratchMove(int x, int y)
         float diff = ((float)x - mPrevScratchPos)/BYTE_POSITION_TO_PIXELS;
         mScratchPosDiff += diff;
 
-        qDebug() << "scratch offset " << (x-mPrevScratchPos) << ", in bytes: " << mScratchPosDiff
-                 << ", setting offset to " << (mInitScratchPos+mScratchPosDiff);
+        //qDebug() << "scratch offset " << (x-mPrevScratchPos) << ", in bytes: " << mScratchPosDiff
+//                 << ", setting offset to " << (mInitScratchPos+mScratchPosDiff);
 
         mScratcher->SetByteOffset(mInitScratchPos + mScratchPosDiff);
 
@@ -241,11 +290,11 @@ void ScratchController::scratchMove(int x, int y)
 
 void ScratchController::scratchEnd(int x, int y)
 {
-    qDebug() << "ScratchEnd " << x << ", " << y;
+    //qDebug() << "ScratchEnd " << x << ", " << y;
 
     if (mScratching)
-    {
         mScratching = false;
+    {
         mScratcher->EndedScratching();
     }
 }
