@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 
     ScratchController* sc = new ScratchController(&app);
 
+
     qmlRegisterType<AudioGraph>("com.sandst1.components", 1, 0, "AudioGraph");
 
     QtQuick2ApplicationViewer viewer;

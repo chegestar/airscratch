@@ -85,7 +85,7 @@ namespace
             for (int i = 0; i < c && i < 10000; i+=AudioGraph::bufDensity)
             {
                 AudioGraph::mBuf[drawidx] = 1000*buf[i];
-                qDebug() << "bufval: " << buf[i];
+                //qDebug() << "bufval: " << buf[i];
                 drawidx++;
             }
 
@@ -206,35 +206,28 @@ void ScratchController::leapScratchStart(float pos, float ypos)
 {
     //qDebug() << __PRETTY_FUNCTION__ << pos;
     scratchStart(pos, 0);
-    FaderVolume = 1.0;
 
     initYPos = ypos;
 }
 
 void ScratchController::leapScratchMove(float pos, float ypos)
 {
-
-    FaderVolume = 1.0 - (ABS(initYPos - ypos) / 150.0);
-
-    if (FaderVolume > 1.0) FaderVolume = 1.0;
-    else if (FaderVolume < 0.0) FaderVolume = 0.0;
-
-
     qDebug() << __PRETTY_FUNCTION__ << pos << ", " << ypos << ", vol: " << FaderVolume;
     scratchMove(pos, 0);
 }
 
 void ScratchController::leapScratchEnd(float pos)
 {
-    FaderVolume = 1.0;
     //qDebug() << __PRETTY_FUNCTION__ << pos;
     scratchEnd(pos, 0);
 }
 
-void ScratchController::faderMove(float volume)
+void ScratchController::setFader(double volume)
 {
-    qDebug() << __PRETTY_FUNCTION__ << volume;
-    FaderVolume = volume;
+    if (volume < 0.5) FaderVolume = 1.0;
+    else FaderVolume = 1 - volume;
+
+    qDebug() << "FaderVolume: " << FaderVolume;
 }
 
 

@@ -1,4 +1,6 @@
 import QtQuick 2.0
+import QtAudioEngine 1.0
+import QtMultimedia 5.0
 
 import com.sandst1.components 1.0
 
@@ -22,38 +24,44 @@ Rectangle {
         text: qsTr("Hello World")
         anchors.centerIn: parent
     }
-    /*MouseArea {
-        anchors.fill: parent
 
+    Audio {
+        id: drumBeat
+        source: "../../../AirScratch/audio/drumloop.wav"
+        volume: 1.5
 
-        onMouseXChanged: {
-            console.log("CHANGE X " + mouseX );
-
-            ScratchCtrl.faderMove(1.0 - mouseX / width);
-        }
-
-    }*/
-
-    /*Rectangle {
-        anchors {
-            left: parent.left
-            right: parent.right
-            bottom: parent.bottom
-        }
-        height: 100;
-
-        color: "#0000ff"
-
-        MouseArea {
-            anchors.fill: parent
-
-
-            onMouseXChanged: {
-                console.log("CHANGE X " + mouseX );
-
-                ScratchCtrl.faderMove(1.0 - mouseX / width);
+        onPlaybackStateChanged: {
+            if (!playing()) {
+                play();
             }
         }
+    }
 
-    }*/
+    MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onMouseXChanged: {
+
+            var min = width/4;
+            var max = 3*width/4;
+
+            var x = mouseX;
+
+            x = (mouseX - min)/(max - min);
+            if (x < 0.0) x = 0.0;
+            if (x > 1.0) x = 1.0;
+
+            ScratchCtrl.setFader(x);
+
+        }
+    }
+
+
+    Component.onCompleted: {
+        drumBeat.play();
+    }
+
+
+
+
 }

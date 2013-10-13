@@ -22,13 +22,14 @@ public:
     void leapScratchEnd(float pos);
 
 
+
     static float FaderVolume;
 signals:
 
 public slots:
     void timerTick();
 
-    void faderMove(float volume);
+    void setFader(double volume);
 
     void scratchStart(int x, int y);
     void scratchMove(int x, int y);
