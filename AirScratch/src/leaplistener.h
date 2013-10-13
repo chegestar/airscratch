@@ -14,6 +14,8 @@ public:
 };
 
 
+class QTimer;
+
 
 class LeapListener : public QObject, public Leap::Listener
 {
@@ -31,8 +33,13 @@ public:
   virtual void onFocusGained(const Leap::Controller&);
   virtual void onFocusLost(const Leap::Controller&);
 
+public slots:
+
+
 private:
   LeapCtrlListener* mListener;
+  QTimer* mScrollTimer;
+  bool mScrolling;
 };
 
 #endif // LEAPLISTENER_H

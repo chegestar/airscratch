@@ -35,6 +35,8 @@ public slots:
     void scratchMove(int x, int y);
     void scratchEnd(int x, int y);
 
+    void gotoStart();
+
 private:
     void initBass();
 

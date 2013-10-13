@@ -2,6 +2,9 @@
 
 #include "leaplistener.h"
 #include <QDebug>
+#include <QTimer>
+
+#include "Scratcher.h"
 
 using namespace Leap;
 
@@ -9,6 +12,7 @@ LeapListener::LeapListener(QObject* parent)
     : QObject(parent), Listener()
 {
     mListener = NULL;
+    mScrolling = false;
 }
 
 void LeapListener::addControlListener(LeapCtrlListener* listener)
@@ -62,43 +66,38 @@ void LeapListener::onFrame(const Controller& controller)
 
         // Get the first hand
         Hand scratchHand = frame.hands().leftmost();
-        Hand faderHand = Hand();
-        if (frame.hands().count() == 2)
-        {
-            faderHand = frame.hands().rightmost();
-        }
 
         /***** Scratch gestures *****/
 
         // Check if the hand has any fingers
         const FingerList fingers = scratchHand.fingers();
-
+        // Calculate the hand's average finger tip position
+        Vector avgPos;
+        Vector tipSpeed;
         if (!fingers.empty() && fingers.count() < 3)
         {
-            // Calculate the hand's average finger tip position
-            Vector avgPos;
+
             for (int i = 0; i < fingers.count(); ++i)
             {
                 avgPos += fingers[i].tipPosition();
+                tipSpeed += fingers[i].tipVelocity();
             }
+
             avgPos /= (float)fingers.count();
+            tipSpeed /= (float)fingers.count();
 
-            if (avgPos.z < -10)
+
+            //qDebug() << __PRETTY_FUNCTION__ << "Hand has " << fingers.count() << " fingers, average finger tip position" << avgPos.toString().c_str();
+
+            if (beginScratch)
             {
-
-
-                //qDebug() << __PRETTY_FUNCTION__ << "Hand has " << fingers.count() << " fingers, average finger tip position" << avgPos.toString().c_str();
-
-                if (beginScratch)
-                {
-                    beginScratch = false;
-                    qDebug() << "Starting scratch at " << avgPos.x << ", " << (unsigned long)mListener;
-                    mListener->leapScratchStart(avgPos.x, avgPos.y);
-                }
-                else
-                {
-                    mListener->leapScratchMove(avgPos.x, avgPos.y);
-                }
+                beginScratch = false;
+                qDebug() << "Starting scratch at " << avgPos.x << ", " << (unsigned long)mListener;
+                mListener->leapScratchStart(avgPos.x, avgPos.y);
+            }
+            else
+            {
+                mListener->leapScratchMove(avgPos.x, avgPos.y);
             }
         }
         else
@@ -109,6 +108,9 @@ void LeapListener::onFrame(const Controller& controller)
 
     }
 }
+
+
+
 
 void LeapListener::onFocusGained(const Controller& controller) {
   qDebug() << __PRETTY_FUNCTION__ << "Focus Gained";

@@ -1,6 +1,6 @@
 #include "scratchcontroller.h"
 
-#define BYTE_POSITION_TO_PIXELS 0.002f
+#define BYTE_POSITION_TO_PIXELS 0.001f
 //#define BYTE_POSITION_TO_PIXELS 0.0035f
 #include <QFile>
 #include <QTimer>
@@ -18,9 +18,13 @@
 
 //#define AUDIO_FILE "30secloop.wav"
 //#define AUDIO_FILE "edison.wav"
-#define AUDIO_FILE "king_nonviolence.wav"
+//#define AUDIO_FILE "king_nonviolence.wav"
 //#define AUDIO_FILE "funky_drummer.wav"
-//#define AUDIO_FILE "killa01.wav"
+//#define AUDIO_FILE "killa04.wav"
+#define AUDIO_FILE "gimmewhat.wav"
+
+//#define AUDIO_FILE "pumpupthevolume.wav"
+//#define AUDIO_FILE "churchbell.wav"
 //#define AUDIO_FILE "calibrate.wav"
 
 #include "riaafilter.h"
@@ -137,6 +141,11 @@ void ScratchController::timerTick()
     mScratcher->Update(dt);
 }
 
+void ScratchController::gotoStart()
+{
+    mScratcher->setScratchOffset(0);
+}
+
 void ScratchController::initBass()
 {
     BASS_Init(-1, 44100, 0, 0, NULL);
@@ -212,7 +221,7 @@ void ScratchController::leapScratchStart(float pos, float ypos)
 
 void ScratchController::leapScratchMove(float pos, float ypos)
 {
-    qDebug() << __PRETTY_FUNCTION__ << pos << ", " << ypos << ", vol: " << FaderVolume;
+    //qDebug() << __PRETTY_FUNCTION__ << pos << ", " << ypos << ", vol: " << FaderVolume;
     scratchMove(pos, 0);
 }
 
@@ -224,7 +233,7 @@ void ScratchController::leapScratchEnd(float pos)
 
 void ScratchController::setFader(double volume)
 {
-    if (volume < 0.5) FaderVolume = 1.0;
+    if (volume < 0.0) FaderVolume = 1.0;
     else FaderVolume = 1 - volume;
 
     qDebug() << "FaderVolume: " << FaderVolume;

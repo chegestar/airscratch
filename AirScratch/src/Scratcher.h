@@ -30,6 +30,8 @@ public:
     void SetByteOffset(float byteOffset);
     float GetByteOffset() const;
 
+    void setScratchOffset(float offset) { scratchingPositionOffset_ = offset;}
+
     void BeganScratching();
     void EndedScratching();
 

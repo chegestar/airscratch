@@ -42,17 +42,23 @@ Rectangle {
         hoverEnabled: true
         onMouseXChanged: {
 
-            var min = width/4;
-            var max = 3*width/4;
+            var min = width*0.4;
+            var max = width*0.6;
 
             var x = mouseX;
 
-            x = (mouseX - min)/(max - min);
-            if (x < 0.0) x = 0.0;
+            x = 2*(mouseX - min)/(max - min) - 0.5;
+            if (x < -1.0) x = -1.0;
             if (x > 1.0) x = 1.0;
 
             ScratchCtrl.setFader(x);
 
+            console.log("x: " + x);
+
+        }
+
+        onPressed: {
+            ScratchCtrl.gotoStart();
         }
     }
 
